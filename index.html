@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Covenant Fellowship — Sermon Vault</title>
+<meta name="description" content="The Covenant Fellowship Sermon Vault — listen to sermons from Covenant Fellowship, anytime, anywhere.">
+<meta name="theme-color" content="#14120D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%2314120D'/%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%23D4AF37' stroke-width='4'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle' fill='%23D4AF37' font-family='Georgia,serif'%3E✚%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#" aria-label="Covenant Fellowship home">
+        <span class="brand-mark">✚</span>
+        <span class="brand-text">
+          <div class="name">Covenant Fellowship</div>
+          <div class="tag">Sermon Vault</div>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle light and dark theme" title="Toggle theme"></button>
+        <button class="admin-pill" id="adminBtn" aria-label="Admin access">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-ring">✚</div>
+        <div class="eyebrow">Est. in the Word · Romans 10:17</div>
+        <h1>Every message,<br>kept in one place.</h1>
+        <p class="sub">Listen to sermons from Covenant Fellowship — preached in our sanctuary, kept here for anyone, anywhere, at any hour.</p>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search by title or preacher…" aria-label="Search sermons">
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-strip">
+      <div class="stat"><div class="num" id="statViews">–</div><div class="lbl">Site Views</div></div>
+      <div class="stat"><div class="num" id="statSermons">–</div><div class="lbl">Sermons</div></div>
+      <div class="stat"><div class="num" id="statListens">–</div><div class="lbl">Total Listens</div></div>
+    </div>
+
+    <div class="wrap">
+      <div class="admin-bar" id="adminBar">
+        <span class="label">Admin mode active</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-gold" id="uploadBtn">＋ Upload Sermon</button>
+          <button class="btn-ghost" id="logoutBtn">Exit Admin</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-head wrap">
+      <h2>The Archive</h2>
+      <span id="listCount"></span>
+    </div>
+
+    <div class="sermon-list" id="sermonList">
+      <div class="skeleton">
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="verse">"So then faith cometh by hearing, and hearing by the word of God."</div>
+    <div>COVENANT FELLOWSHIP · SERMON VAULT © <span id="year"></span></div>
+  </footer>
+</div>
+
+<!-- Admin login modal -->
+<div class="modal-backdrop" id="adminModalBackdrop">
+  <div class="modal" style="position:relative;">
+    <button class="close-x" data-close="adminModalBackdrop" aria-label="Close">✕</button>
+    <h3>Admin Access</h3>
+    <p class="modal-sub">Enter the admin passcode to manage sermons.</p>
+    <div class="field">
+      <label for="passcodeInput">Passcode</label>
+      <input type="password" id="passcodeInput" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="modal-error" id="passcodeError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" data-close="adminModalBackdrop">Cancel</button>
+      <button class="btn-gold" id="passcodeSubmit">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload modal -->
+<div class="modal-backdrop" id="uploadModalBackdrop">
+  <div class="modal" style="position:relative;">
+    <button class="close-x" data-close="uploadModalBackdrop" aria-label="Close">✕</button>
+    <h3>Upload Sermon</h3>
+    <p class="modal-sub">MP3 audio only.</p>
+    <div class="field">
+      <label for="upTitle">Sermon Title</label>
+      <input type="text" id="upTitle" placeholder="e.g. Walking in Grace">
+    </div>
+    <div class="field">
+      <label for="upPreacher">Preacher</label>
+      <input type="text" id="upPreacher" placeholder="e.g. Pastor John Adeyemi">
+    </div>
+    <div class="field">
+      <label for="upDesc">Description</label>
+      <textarea id="upDesc" rows="3" placeholder="A short summary of the message…"></textarea>
+    </div>
+    <div class="field">
+      <label>Sermon Audio (.mp3)</label>
+      <label class="filepick" id="filepickLabel">
+        <input type="file" id="upFile" accept=".mp3,audio/mpeg,audio/mp3">
+        <div class="fp-label">Tap to choose an MP3 file</div>
+        <div class="fp-name" id="fpName"></div>
+      </label>
+      <div class="hint">Stored in cloud storage — supports full-length sermons up to 200&nbsp;MB (roughly 3–4 hours at typical MP3 bitrates).</div>
+    </div>
+    <div class="modal-error" id="uploadError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" data-close="uploadModalBackdrop">Cancel</button>
+      <button class="btn-gold" id="uploadSubmit">Publish</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="./script.js"></script>
+</body>
+</html>
